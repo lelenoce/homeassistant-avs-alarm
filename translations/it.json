@@ -1,0 +1,24 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Configurazione AVS Alarm",
+                "description": "Inserisci i dettagli di connessione del tuo sistema di allarme AVS",
+                "data": {
+                    "host": "Indirizzo IP",
+                    "port": "Porta",
+                    "username": "Nome utente",
+                    "pid": "PID"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Impossibile connettersi al sistema di allarme",
+            "invalid_auth": "Autenticazione non valida",
+            "unknown": "Errore sconosciuto"
+        },
+        "abort": {
+            "already_configured": "Questo dispositivo è già configurato"
+        }
+    }
+} 
