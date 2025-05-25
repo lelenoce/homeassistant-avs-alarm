@@ -1,0 +1,19 @@
+{
+    "domain": "avsalarm",
+    "name": "AVS Alarm",
+    "version": "1.0.0",
+    "documentation": "https://github.com/lelenoce/homeassistant-avs-alarm",
+    "issue_tracker": "https://github.com/lelenoce/homeassistant-avs-alarm/issues",
+    "dependencies": [],
+    "codeowners": ["@lelenoce"],
+    "requirements": ["requests>=2.31.0"],
+    "config_flow": true,
+    "iot_class": "local_polling",
+    "integration_type": "device",
+    "quality_scale": "platinum",
+    "logotype": "avsalarm.png",
+    "homekit": {
+        "models": ["AVS Alarm System"]
+    },
+    "platforms": ["switch", "sensor", "binary_sensor"]
+}
