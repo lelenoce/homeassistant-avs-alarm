@@ -110,8 +110,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up the AVS Alarm sensors from a config entry."""
     coordinator = hass.data["avsalarm"][entry.entry_id]
-    num_sectors = entry.data.get("sectors", 1)
-    zones = entry.data.get("zones", [])
+    num_sectors = entry.options.get("sectors", entry.data.get("sectors", 1))
+    zones = entry.options.get("zones", entry.data.get("zones", []))
 
     sensors = [
         AVSAlarmSensor(coordinator, f"AVS Alarm Sector {sector} Status", sector)
