@@ -124,7 +124,8 @@ class AVSAlarmOptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        super().__init__()
+        self._config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -147,9 +148,9 @@ class AVSAlarmOptionsFlow(config_entries.OptionsFlow):
                     raise ValueError("Cannot connect")
 
                 self.hass.config_entries.async_update_entry(
-                    self.config_entry,
+                    self._config_entry,
                     data={
-                        **self.config_entry.data,
+                        **self._config_entry.data,
                         CONF_HOST: user_input[CONF_HOST],
                         CONF_PORT: user_input[CONF_PORT],
                         CONF_USERNAME: user_input[CONF_USERNAME],
@@ -168,17 +169,17 @@ class AVSAlarmOptionsFlow(config_entries.OptionsFlow):
                 if "base" not in errors:
                     errors["base"] = "invalid_zones"
 
-        current_host = self.config_entry.data.get(CONF_HOST, "")
-        current_port = self.config_entry.data.get(CONF_PORT, 80)
-        current_username = self.config_entry.data.get(CONF_USERNAME, "")
-        current_pid = self.config_entry.data.get("pid", "")
-        current_sectors = self.config_entry.options.get(
+        current_host = self._config_entry.data.get(CONF_HOST, "")
+        current_port = self._config_entry.data.get(CONF_PORT, 80)
+        current_username = self._config_entry.data.get(CONF_USERNAME, "")
+        current_pid = self._config_entry.data.get("pid", "")
+        current_sectors = self._config_entry.options.get(
             "sectors",
-            self.config_entry.data.get("sectors", 1),
+            self._config_entry.data.get("sectors", 1),
         )
-        current_zones = self.config_entry.options.get(
+        current_zones = self._config_entry.options.get(
             "zones",
-            self.config_entry.data.get("zones", []),
+            self._config_entry.data.get("zones", []),
         )
 
         return self.async_show_form(
