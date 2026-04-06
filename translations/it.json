@@ -23,5 +23,25 @@
         "abort": {
             "already_configured": "Questo dispositivo è già configurato"
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Opzioni AVS Alarm",
+                "description": "Aggiorna connessione, settori ed elenco zone senza rimuovere l'integrazione.",
+                "data": {
+                    "host": "Indirizzo IP",
+                    "port": "Porta",
+                    "username": "Nome utente",
+                    "pid": "PID",
+                    "sectors": "Numero settori",
+                    "zones": "Elenco zone (es. 1,3,8)"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Impossibile connettersi al sistema di allarme",
+            "invalid_zones": "Elenco zone non valido"
+        }
     }
 } 

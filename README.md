@@ -81,6 +81,24 @@ Dopo il riavvio:
 - `Sectors`: numero di settori da esporre in Home Assistant, da `1` a `4`.
 - `Zones`: elenco opzionale di zone da monitorare e comandare, separate da virgola, per esempio `1,3,8`.
 
+### Riconfigurazione
+
+Dopo la prima installazione puoi aggiornare senza rimuovere l'integrazione:
+
+- `Host`
+- `Port`
+- `Username`
+- `PID`
+- `Sectors`
+- `Zones`
+
+1. vai in `Impostazioni > Dispositivi e servizi`;
+2. apri `AVS Alarm`;
+3. clicca `Configura`;
+4. salva le nuove opzioni.
+
+Al salvataggio Home Assistant ricarica automaticamente l'integrazione con i nuovi valori.
+
 ## Entita create
 
 Per ogni settore configurato vengono create queste entita:
