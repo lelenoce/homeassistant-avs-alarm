@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .avs_api import AVSAlarmCoordinator, open_session, edit_sector_status
+from .avs_api import AVSAlarmCoordinator, edit_sector_status, edit_zone_status, open_session
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -131,6 +131,105 @@ class AVSAlarmSectorSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER.error("Error changing AVS alarm sector: %s", err)
             raise
 
+
+class AVSAlarmZoneSwitch(CoordinatorEntity, SwitchEntity):
+    """Representation of an AVS Alarm zone switch."""
+
+    def __init__(
+        self,
+        coordinator: AVSAlarmCoordinator,
+        zone: int,
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._zone = zone
+        self._attr_name = f"AVS Alarm Zone {zone} Alarm"
+        self._attr_unique_id = f"avs_alarm_zone_{zone}_alarm"
+        self._attr_icon = "mdi:alarm-light"
+
+    @property
+    def name(self) -> str:
+        """Return the name of the switch."""
+        return self._attr_name
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the zone is active."""
+        if not self.coordinator.data:
+            return False
+
+        zone_data = self.coordinator.data.get(f"zone_{self._zone}", {})
+        return zone_data.get("active") == "yes"
+
+    async def _async_wait_for_state(self, expected_active: bool) -> None:
+        """Retry a few refreshes because the panel may apply the change with delay."""
+        for _ in range(5):
+            await self.coordinator.async_refresh()
+            zone_data = self.coordinator.data.get(f"zone_{self._zone}", {})
+            is_active = zone_data.get("active") == "yes"
+            if is_active == expected_active:
+                return
+
+            await asyncio.sleep(1)
+
+    async def async_turn_on(self) -> None:
+        """Trigger alarm on the zone."""
+        try:
+            await self.hass.async_add_executor_job(
+                open_session,
+                self.coordinator.ip,
+                self.coordinator.port,
+                self.coordinator.user,
+                self.coordinator.pid,
+            )
+
+            result = await self.hass.async_add_executor_job(
+                edit_zone_status,
+                self.coordinator.ip,
+                self.coordinator.port,
+                self.coordinator.user,
+                self.coordinator.pid,
+                self._zone,
+                "alarm",
+            )
+
+            if result:
+                await self._async_wait_for_state(True)
+                self.async_write_ha_state()
+
+        except Exception as err:
+            _LOGGER.error("Error changing AVS alarm zone: %s", err)
+            raise
+
+    async def async_turn_off(self) -> None:
+        """Restore the zone."""
+        try:
+            await self.hass.async_add_executor_job(
+                open_session,
+                self.coordinator.ip,
+                self.coordinator.port,
+                self.coordinator.user,
+                self.coordinator.pid,
+            )
+
+            result = await self.hass.async_add_executor_job(
+                edit_zone_status,
+                self.coordinator.ip,
+                self.coordinator.port,
+                self.coordinator.user,
+                self.coordinator.pid,
+                self._zone,
+                "restore",
+            )
+
+            if result:
+                await self._async_wait_for_state(False)
+                self.async_write_ha_state()
+
+        except Exception as err:
+            _LOGGER.error("Error changing AVS alarm zone: %s", err)
+            raise
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -139,6 +238,7 @@ async def async_setup_entry(
     """Set up the AVS Alarm switches from a config entry."""
     coordinator = hass.data["avsalarm"][entry.entry_id]
     num_sectors = entry.data.get("sectors", 1)
+    zones = entry.data.get("zones", [])
     
     switches = []
     arm_modes = ["arm-on", "arm-area", "arm-home", "arm-perimeter"]
@@ -146,6 +246,9 @@ async def async_setup_entry(
     for sector in range(1, num_sectors + 1):
         for arm_mode in arm_modes:
             switches.append(AVSAlarmSectorSwitch(coordinator, sector, arm_mode))
+
+    for zone in zones:
+        switches.append(AVSAlarmZoneSwitch(coordinator, zone))
     
     async_add_entities(switches)
 

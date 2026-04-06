@@ -46,14 +46,13 @@ def get_zone_status(ip, port, user, pid, zone):
     try:
         response = requests.get(status_url, timeout=10)
         if response.status_code == 200:
-            data = response.json()
-            return data.get('status', 'unknown')
+            return response.json()
         else:
             _LOGGER.error(f"Errore: {response.status_code}, {response.text}")
-            return "Error: Unable to retrieve zone status"
+            return {"status": "error"}
     except requests.RequestException as e:
         _LOGGER.error(f"Errore nella chiamata API per la zona: {e}")
-        return "Error"
+        return {"status": "error"}
 
 
 def get_sector_status(ip, port, user, pid, sector):
@@ -94,6 +93,23 @@ def edit_sector_status(ip, port, user, pid, sector, command):
         _LOGGER.error(f"Errore nella chiamata API per il settore: {e}")
         return False
 
+
+def edit_zone_status(ip, port, user, pid, zone, command):
+    """
+    Modifica lo stato di una zona specifica.
+    """
+    status_url = f"http://{ip}:{port}/cmd/zone/{command}?ultra=kOU9Rc885y1Gia3p&pid={pid}&user={user}&zone={zone}"
+    try:
+        response = requests.get(status_url, timeout=10)
+        if response.status_code == 200:
+            return True
+
+        _LOGGER.error(f"Errore: {response.status_code}, {response.text}")
+        return False
+    except requests.RequestException as e:
+        _LOGGER.error(f"Errore nella chiamata API per la zona: {e}")
+        return False
+
 class AVSAlarmCoordinator(DataUpdateCoordinator):
     """AVS Alarm coordinator."""
 
@@ -105,6 +121,7 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
         user: str,
         pid: str,
         num_sectors: int = 1,
+        zones: list[int] | None = None,
         update_interval: int = 30,
     ) -> None:
         """Initialize the coordinator."""
@@ -119,6 +136,7 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
         self.user = user
         self.pid = pid
         self.num_sectors = num_sectors
+        self.zones = zones or []
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via API."""
@@ -143,6 +161,17 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
                     sector,
                 )
                 new_data[f"sector_{sector}"] = sector_status
+
+            for zone in self.zones:
+                zone_status = await self.hass.async_add_executor_job(
+                    get_zone_status,
+                    self.ip,
+                    self.port,
+                    self.user,
+                    self.pid,
+                    zone,
+                )
+                new_data[f"zone_{zone}"] = zone_status
             
             # Se i dati sono cambiati, notifica tutti i listener
             if self.data != new_data:
@@ -152,7 +181,14 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
 
         except Exception as err:
             _LOGGER.error("Error updating AVS alarm data: %s", err)
-            return self.data or {
+            if self.data:
+                return self.data
+
+            fallback_data = {
                 f"sector_{sector}": "unknown"
                 for sector in range(1, self.num_sectors + 1)
             }
+            for zone in self.zones:
+                fallback_data[f"zone_{zone}"] = {"status": "unknown"}
+
+            return fallback_data

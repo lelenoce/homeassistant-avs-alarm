@@ -2,6 +2,7 @@
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://www.hacs.xyz/)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1.0%2B-blue.svg)](https://www.home-assistant.io/)
+[![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/lelenoce/homeassistant-avs-alarm)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Integrazione custom per collegare una centrale **AVS Alarm** a **Home Assistant** tramite API HTTP in rete locale.
@@ -19,6 +20,7 @@ L'integrazione crea entita Home Assistant per ogni settore configurato:
 - `sensor` con stato testuale del settore;
 - `binary_sensor` che indica se il settore risulta armato;
 - `switch` per inviare i comandi di inserimento e disinserimento.
+- supporto da `1` a `4` settori configurabili.
 
 La comunicazione avviene in **locale** con polling periodico. Non e richiesto alcun servizio cloud.
 
@@ -77,6 +79,7 @@ Dopo il riavvio:
 - `Username`: utente AVS usato per le chiamate API.
 - `PID`: identificativo del sistema.
 - `Sectors`: numero di settori da esporre in Home Assistant, da `1` a `4`.
+- `Zones`: elenco opzionale di zone da monitorare e comandare, separate da virgola, per esempio `1,3,8`.
 
 ## Entita create
 
@@ -88,6 +91,11 @@ Per ogni settore configurato vengono create queste entita:
 - `switch.avs_alarm_sector_X_arm_area`
 - `switch.avs_alarm_sector_X_arm_home`
 - `switch.avs_alarm_sector_X_arm_perimeter`
+
+Per ogni zona configurata vengono create queste entita:
+
+- `sensor.avs_alarm_zone_X_status`
+- `switch.avs_alarm_zone_X_alarm`
 
 I nomi finali possono cambiare leggermente in base alle regole di naming di Home Assistant.
 
@@ -137,7 +145,7 @@ automation:
 L'integrazione:
 
 - apre una sessione verso la centrale;
-- legge lo stato del settore via endpoint HTTP;
+- legge lo stato di tutti i settori configurati via endpoint HTTP;
 - aggiorna le entita in Home Assistant ogni 30 secondi;
 - invia i comandi di arm/disarm tramite chiamate HTTP dedicate.
 
@@ -145,10 +153,16 @@ L'integrazione:
 
 Questa sezione e importante per evitare aspettative sbagliate.
 
-- Il polling automatico implementato oggi legge esplicitamente lo stato del `settore 1`.
-- Se configuri piu settori, le entita vengono create comunque, ma lo stato letto potrebbe non riflettere ancora tutti i settori in modo completo.
+- Il numero massimo di settori configurabili e `4`.
 - La comunicazione usa HTTP in chiaro sulla rete locale.
 - Il progetto non implementa ancora una gestione avanzata di errori, diagnostica o test automatici.
+
+## Novita 1.0.2
+
+- supporto reale ai settori multipli, da `1` a `4`;
+- supporto per una lista configurabile di zone con sensore di stato e switch dedicato;
+- refresh dello stato piu rapido dopo i comandi di inserimento e disinserimento;
+- branding locale dell'integrazione con icona e descrizione migliorate.
 
 Per un uso hobbistico e domestico puo andare bene, ma conviene fare prove graduali prima di affidarsi all'integrazione per scenari critici.
 

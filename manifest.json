@@ -1,7 +1,7 @@
 {
     "domain": "avsalarm",
     "name": "AVS Alarm",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "documentation": "https://github.com/lelenoce/homeassistant-avs-alarm",
     "issue_tracker": "https://github.com/lelenoce/homeassistant-avs-alarm/issues",
     "dependencies": [],

@@ -24,6 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         user=entry.data[CONF_USERNAME],
         pid=entry.data["pid"],
         num_sectors=entry.data.get("sectors", 1),
+        zones=entry.data.get("zones", []),
     )
 
     try:

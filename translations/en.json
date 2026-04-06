@@ -9,13 +9,15 @@
                     "port": "Port",
                     "username": "Username",
                     "pid": "PID",
-                    "sectors": "Number of sectors"
+                    "sectors": "Number of sectors",
+                    "zones": "Zone list (for example 1,3,8)"
                 }
             }
         },
         "error": {
             "cannot_connect": "Failed to connect to alarm system",
             "invalid_auth": "Invalid authentication",
+            "invalid_zones": "Invalid zone list",
             "unknown": "Unexpected error"
         },
         "abort": {

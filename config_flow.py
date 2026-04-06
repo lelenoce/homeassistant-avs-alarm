@@ -16,6 +16,25 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "avsalarm"
 
+
+def _parse_zones(raw_zones: str) -> list[int]:
+    """Parse a comma-separated list of zone ids."""
+    if not raw_zones.strip():
+        return []
+
+    zones = []
+    for item in raw_zones.split(","):
+        cleaned = item.strip()
+        if not cleaned:
+            continue
+
+        zone = int(cleaned)
+        if zone < 1:
+            raise ValueError("Zone ids must be positive integers")
+        zones.append(zone)
+
+    return sorted(set(zones))
+
 class AVSAlarmConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for AVS Alarm."""
 
@@ -29,6 +48,7 @@ class AVSAlarmConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
+                zones = _parse_zones(user_input.get("zones", ""))
                 # Test connection
                 result = await self.hass.async_add_executor_job(
                     open_session,
@@ -39,12 +59,18 @@ class AVSAlarmConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
 
                 if result:
+                    user_input = {
+                        **user_input,
+                        "zones": zones,
+                    }
                     return self.async_create_entry(
                         title=f"AVS Alarm ({user_input['pid']})",
                         data=user_input,
                     )
                 else:
                     errors["base"] = "cannot_connect"
+            except ValueError:
+                errors["base"] = "invalid_zones"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -58,6 +84,7 @@ class AVSAlarmConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_USERNAME): str,
                     vol.Required("pid"): str,
                     vol.Required("sectors", default=1): vol.All(vol.Coerce(int), vol.Range(min=1, max=4)),
+                    vol.Optional("zones", default=""): str,
                 }
             ),
             errors=errors,
