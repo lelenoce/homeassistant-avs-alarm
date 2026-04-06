@@ -13,7 +13,7 @@ from .avs_api import AVSAlarmCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT]
+PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SWITCH]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up AVS Alarm from a config entry."""
@@ -23,6 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         port=entry.data[CONF_PORT],
         user=entry.data[CONF_USERNAME],
         pid=entry.data["pid"],
+        num_sectors=entry.data.get("sectors", 1),
     )
 
     try:

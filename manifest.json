@@ -10,8 +10,7 @@
     "config_flow": true,
     "iot_class": "local_polling",
     "integration_type": "device",
-    "quality_scale": "platinum",
-    "logotype": "avsalarm.png",
+    "quality_scale": "bronze",
     "homekit": {
         "models": ["AVS Alarm System"]
     },

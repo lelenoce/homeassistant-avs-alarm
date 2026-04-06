@@ -3,12 +3,13 @@
         "step": {
             "user": {
                 "title": "AVS Alarm Configuration",
-                "description": "Enter your AVS alarm system connection details",
+                "description": "Connect your AVS Alarm panel to Home Assistant to monitor sector status and send arm or disarm commands over the local network.",
                 "data": {
                     "host": "IP Address",
                     "port": "Port",
                     "username": "Username",
-                    "pid": "PID"
+                    "pid": "PID",
+                    "sectors": "Number of sectors"
                 }
             }
         },

@@ -14,8 +14,25 @@ def open_session(ip, port, user, pid):
     """
     session_url = f"http://{ip}:{port}/session/open?ultra=kOU9Rc885y1Gia3p&pid={pid}&user={user}"
     try:
-        requests.get(session_url, timeout=10)
-        return True
+        response = requests.get(session_url, timeout=10)
+
+        if response.status_code == 200:
+            return True
+
+        response_text = (response.text or "").strip()
+
+        # La centrale puo rispondere con 500 se l'utente ha gia una sessione attiva.
+        # In questo caso consideriamo comunque la sessione valida.
+        if response.status_code == 500 and "user already logged in" in response_text.lower():
+            _LOGGER.debug("Sessione AVS gia attiva per l'utente %s", user)
+            return True
+
+        _LOGGER.error(
+            "Errore apertura sessione AVS: status=%s body=%s",
+            response.status_code,
+            response_text,
+        )
+        return False
     except requests.RequestException as e:
         _LOGGER.error(f"Errore nella chiamata di apertura sessione: {e}")
         return False
@@ -48,7 +65,12 @@ def get_sector_status(ip, port, user, pid, sector):
         response = requests.get(status_url, timeout=10)
         if response.status_code == 200:
             data = response.json()
-            return data.get('sect-01', 'unknown')
+            sector_key = f"sect-{sector:02d}"
+            if sector_key in data:
+                return data.get(sector_key, "unknown")
+            if "status" in data:
+                return data.get("status", "unknown")
+            return next(iter(data.values()), "unknown")
         else:
             _LOGGER.error(f"Errore: {response.status_code}, {response.text}")
             return "Error: Unable to retrieve sector status"
@@ -82,6 +104,7 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
         port: int,
         user: str,
         pid: str,
+        num_sectors: int = 1,
         update_interval: int = 30,
     ) -> None:
         """Initialize the coordinator."""
@@ -95,6 +118,7 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
         self.port = port
         self.user = user
         self.pid = pid
+        self.num_sectors = num_sectors
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via API."""
@@ -108,17 +132,17 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
                 self.pid,
             )
 
-            sector_status = await self.hass.async_add_executor_job(
-                get_sector_status,
-                self.ip,
-                self.port,
-                self.user,
-                self.pid,
-                1,  # Default sector
-            )
-
-            # Aggiorna i dati
-            new_data = {"sector_1": sector_status}
+            new_data = {}
+            for sector in range(1, self.num_sectors + 1):
+                sector_status = await self.hass.async_add_executor_job(
+                    get_sector_status,
+                    self.ip,
+                    self.port,
+                    self.user,
+                    self.pid,
+                    sector,
+                )
+                new_data[f"sector_{sector}"] = sector_status
             
             # Se i dati sono cambiati, notifica tutti i listener
             if self.data != new_data:
@@ -128,4 +152,7 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
 
         except Exception as err:
             _LOGGER.error("Error updating AVS alarm data: %s", err)
-            return self.data or {"sector_1": "unknown"}        
+            return self.data or {
+                f"sector_{sector}": "unknown"
+                for sector in range(1, self.num_sectors + 1)
+            }

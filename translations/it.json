@@ -3,12 +3,13 @@
         "step": {
             "user": {
                 "title": "Configurazione AVS Alarm",
-                "description": "Inserisci i dettagli di connessione del tuo sistema di allarme AVS",
+                "description": "Integra la tua centrale AVS Alarm in Home Assistant per monitorare lo stato dei settori e inviare comandi di inserimento e disinserimento dalla rete locale.",
                 "data": {
                     "host": "Indirizzo IP",
                     "port": "Porta",
                     "username": "Nome utente",
-                    "pid": "PID"
+                    "pid": "PID",
+                    "sectors": "Numero settori"
                 }
             }
         },

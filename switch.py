@@ -1,6 +1,7 @@
 """The AVS Alarm Switch integration."""
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -13,6 +14,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .avs_api import AVSAlarmCoordinator, open_session, edit_sector_status
 
 _LOGGER = logging.getLogger(__name__)
+
+ARMED_STATES = {
+    "arm-on": "ON",
+    "arm-area": "Area armed",
+    "arm-home": "Home armed",
+    "arm-perimeter": "Perimeter armed",
+}
 
 class AVSAlarmSectorSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of an AVS Alarm sector switch."""
@@ -43,15 +51,21 @@ class AVSAlarmSectorSwitch(CoordinatorEntity, SwitchEntity):
             return False
 
         sector_status = self.coordinator.data.get(f"sector_{self._sector}")
-        if self._arm_mode == "arm-on" and sector_status == "ON":
-            return True
-        elif self._arm_mode == "arm-area" and sector_status == "Area armed":
-            return True
-        elif self._arm_mode == "arm-home" and sector_status == "Home armed":
-            return True
-        elif self._arm_mode == "arm-perimeter" and sector_status == "Perimeter armed":
-            return True
-        return False
+        return ARMED_STATES.get(self._arm_mode) == sector_status
+
+    async def _async_wait_for_state(self, expected_state: str | None) -> None:
+        """Retry a few refreshes because the panel may apply the change with delay."""
+        for _ in range(5):
+            await self.coordinator.async_refresh()
+            current_state = self.coordinator.data.get(f"sector_{self._sector}")
+
+            if expected_state is None:
+                if current_state not in ARMED_STATES.values():
+                    return
+            elif current_state == expected_state:
+                return
+
+            await asyncio.sleep(1)
 
     async def async_turn_on(self) -> None:
         """Turn the switch on."""
@@ -77,8 +91,7 @@ class AVSAlarmSectorSwitch(CoordinatorEntity, SwitchEntity):
             )
 
             if result:
-                # Forza un aggiornamento immediato del coordinator
-                await self.coordinator.async_refresh()
+                await self._async_wait_for_state(ARMED_STATES[self._arm_mode])
                 # Aggiorna lo stato locale
                 self.async_write_ha_state()
 
@@ -110,8 +123,7 @@ class AVSAlarmSectorSwitch(CoordinatorEntity, SwitchEntity):
             )
 
             if result:
-                # Forza un aggiornamento immediato del coordinator
-                await self.coordinator.async_refresh()
+                await self._async_wait_for_state(None)
                 # Aggiorna lo stato locale
                 self.async_write_ha_state()
 
