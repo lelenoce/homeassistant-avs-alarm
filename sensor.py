@@ -69,7 +69,7 @@ class AVSAlarmZoneSensor(CoordinatorEntity, SensorEntity):
         self._zone = zone
         self._attr_name = f"AVS Alarm Zone {zone} Status"
         self._attr_unique_id = f"avs_alarm_zone_{zone}_status"
-        self._attr_icon = "mdi:motion-sensor"
+        self._attr_icon = "mdi:shield-alert"
 
     @property
     def name(self) -> str:
