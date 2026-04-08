@@ -1,7 +1,7 @@
 {
     "name": "AVS Alarm",
     "render_readme": true,
-    "domains": ["switch", "sensor", "binary_sensor"],
+    "domains": ["avsalarm"],
     "homeassistant": "2024.1.0",
     "iot_class": "Local Polling"
 } 

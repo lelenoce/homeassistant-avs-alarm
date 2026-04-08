@@ -60,7 +60,10 @@ La comunicazione avviene in **locale** con polling periodico. Non e richiesto al
    <config>/custom_components/avsalarm
    ```
 
-3. Copia dentro quella cartella i file Python, `manifest.json`, `translations/` e le altre risorse del progetto.
+3. Copia dentro quella cartella il contenuto di:
+
+   [`custom_components/avsalarm`](custom_components/avsalarm)
+
 4. Riavvia Home Assistant.
 
 ## Configurazione
@@ -207,12 +210,12 @@ Se invece ti serve un'integrazione enterprise, con test, supporto strutturato e 
 
 Struttura principale del progetto:
 
-- [`manifest.json`](manifest.json): metadati dell'integrazione;
-- [`config_flow.py`](config_flow.py): configurazione via UI;
-- [`avs_api.py`](avs_api.py): chiamate HTTP e coordinator;
-- [`sensor.py`](sensor.py): sensori di stato;
-- [`binary_sensor.py`](binary_sensor.py): stato armato/disarmato;
-- [`switch.py`](switch.py): comandi di inserimento/disinserimento.
+- [`custom_components/avsalarm/manifest.json`](custom_components/avsalarm/manifest.json): metadati dell'integrazione;
+- [`custom_components/avsalarm/config_flow.py`](custom_components/avsalarm/config_flow.py): configurazione via UI;
+- [`custom_components/avsalarm/avs_api.py`](custom_components/avsalarm/avs_api.py): chiamate HTTP e coordinator;
+- [`custom_components/avsalarm/sensor.py`](custom_components/avsalarm/sensor.py): sensori di stato;
+- [`custom_components/avsalarm/binary_sensor.py`](custom_components/avsalarm/binary_sensor.py): stato armato/disarmato;
+- [`custom_components/avsalarm/switch.py`](custom_components/avsalarm/switch.py): comandi di inserimento/disinserimento.
 
 ## Supporto
 
