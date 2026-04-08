@@ -47,12 +47,11 @@ def get_zone_status(ip, port, user, pid, zone):
         response = requests.get(status_url, timeout=10)
         if response.status_code == 200:
             return response.json()
-        else:
-            _LOGGER.error(f"Errore: {response.status_code}, {response.text}")
-            return {"status": "error"}
+        _LOGGER.error(f"Errore: {response.status_code}, {response.text}")
+        return None
     except requests.RequestException as e:
         _LOGGER.error(f"Errore nella chiamata API per la zona: {e}")
-        return {"status": "error"}
+        return None
 
 
 def get_sector_status(ip, port, user, pid, sector):
@@ -70,12 +69,11 @@ def get_sector_status(ip, port, user, pid, sector):
             if "status" in data:
                 return data.get("status", "unknown")
             return next(iter(data.values()), "unknown")
-        else:
-            _LOGGER.error(f"Errore: {response.status_code}, {response.text}")
-            return "Error: Unable to retrieve sector status"
+        _LOGGER.error(f"Errore: {response.status_code}, {response.text}")
+        return None
     except requests.RequestException as e:
         _LOGGER.error(f"Errore nella chiamata API per il settore: {e}")
-        return "Error"
+        return None
         
 def edit_sector_status(ip, port, user, pid, sector, command):
     """
@@ -141,14 +139,18 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via API."""
         try:
-            # Ignoriamo il risultato di open_session
-            await self.hass.async_add_executor_job(
+            session_ok = await self.hass.async_add_executor_job(
                 open_session,
                 self.ip,
                 self.port,
                 self.user,
                 self.pid,
             )
+
+            if not session_ok:
+                _LOGGER.warning(
+                    "Apertura sessione AVS fallita, continuo comunque con il polling"
+                )
 
             new_data = {}
             for sector in range(1, self.num_sectors + 1):
@@ -160,7 +162,14 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
                     self.pid,
                     sector,
                 )
-                new_data[f"sector_{sector}"] = sector_status
+                if sector_status is None:
+                    new_data[f"sector_{sector}"] = (
+                        self.data.get(f"sector_{sector}", "unknown")
+                        if self.data
+                        else "unknown"
+                    )
+                else:
+                    new_data[f"sector_{sector}"] = sector_status
 
             for zone in self.zones:
                 zone_status = await self.hass.async_add_executor_job(
@@ -171,7 +180,14 @@ class AVSAlarmCoordinator(DataUpdateCoordinator):
                     self.pid,
                     zone,
                 )
-                new_data[f"zone_{zone}"] = zone_status
+                if zone_status is None:
+                    new_data[f"zone_{zone}"] = (
+                        self.data.get(f"zone_{zone}", {"status": "unknown"})
+                        if self.data
+                        else {"status": "unknown"}
+                    )
+                else:
+                    new_data[f"zone_{zone}"] = zone_status
             
             # Se i dati sono cambiati, notifica tutti i listener
             if self.data != new_data:
