@@ -1,0 +1,47 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Configurazione AVS Alarm",
+                "description": "Integra la tua centrale AVS Alarm in Home Assistant per monitorare lo stato dei settori e inviare comandi di inserimento e disinserimento dalla rete locale.",
+                "data": {
+                    "host": "Indirizzo IP",
+                    "port": "Porta",
+                    "username": "Nome utente",
+                    "pid": "PID",
+                    "sectors": "Numero settori",
+                    "zones": "Elenco zone (es. 1,3,8)"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Impossibile connettersi al sistema di allarme",
+            "invalid_auth": "Autenticazione non valida",
+            "invalid_zones": "Elenco zone non valido",
+            "unknown": "Errore sconosciuto"
+        },
+        "abort": {
+            "already_configured": "Questo dispositivo è già configurato"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Opzioni AVS Alarm",
+                "description": "Aggiorna connessione, settori ed elenco zone senza rimuovere l'integrazione.",
+                "data": {
+                    "host": "Indirizzo IP",
+                    "port": "Porta",
+                    "username": "Nome utente",
+                    "pid": "PID",
+                    "sectors": "Numero settori",
+                    "zones": "Elenco zone (es. 1,3,8)"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Impossibile connettersi al sistema di allarme",
+            "invalid_zones": "Elenco zone non valido"
+        }
+    }
+} 

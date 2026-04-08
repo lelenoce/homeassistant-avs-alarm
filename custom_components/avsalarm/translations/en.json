@@ -1,0 +1,47 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "AVS Alarm Configuration",
+                "description": "Connect your AVS Alarm panel to Home Assistant to monitor sector status and send arm or disarm commands over the local network.",
+                "data": {
+                    "host": "IP Address",
+                    "port": "Port",
+                    "username": "Username",
+                    "pid": "PID",
+                    "sectors": "Number of sectors",
+                    "zones": "Zone list (for example 1,3,8)"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Failed to connect to alarm system",
+            "invalid_auth": "Invalid authentication",
+            "invalid_zones": "Invalid zone list",
+            "unknown": "Unexpected error"
+        },
+        "abort": {
+            "already_configured": "This device is already configured"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "AVS Alarm Options",
+                "description": "Update connection settings, sectors and the zone list without removing the integration.",
+                "data": {
+                    "host": "IP Address",
+                    "port": "Port",
+                    "username": "Username",
+                    "pid": "PID",
+                    "sectors": "Number of sectors",
+                    "zones": "Zone list (for example 1,3,8)"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Failed to connect to alarm system",
+            "invalid_zones": "Invalid zone list"
+        }
+    }
+} 

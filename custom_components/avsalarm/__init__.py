@@ -13,16 +13,26 @@ from .avs_api import AVSAlarmCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT]
+PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SWITCH]
+
+
+async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the config entry when its options change."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up AVS Alarm from a config entry."""
+    num_sectors = entry.options.get("sectors", entry.data.get("sectors", 1))
+    zones = entry.options.get("zones", entry.data.get("zones", []))
+
     coordinator = AVSAlarmCoordinator(
         hass,
         ip=entry.data[CONF_HOST],
         port=entry.data[CONF_PORT],
         user=entry.data[CONF_USERNAME],
         pid=entry.data["pid"],
+        num_sectors=num_sectors,
+        zones=zones,
     )
 
     try:
@@ -32,6 +42,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault("avsalarm", {})
     hass.data["avsalarm"][entry.entry_id] = coordinator
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
